@@ -1,3 +1,9 @@
+<div style="text-align: center;">
+  <a href="https://www.slaif.si">
+    <img src="https://slaif.si/img/logos/SLAIF_logo_ANG_barve.svg" width="400" height="400">
+  </a>
+</div>
+
 # SLAIF Directional Board Generator
 
 This project defines a small workflow for producing printable directional
