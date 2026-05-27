@@ -125,13 +125,24 @@ Only the arrow direction changes.
 
 For landscape boards, a left-to-right or balanced horizontal layout is usually appropriate.
 
-A good default is:
+A strong default for A4 landscape boards is:
 
-- Logo on the left.
-- Title in the middle or upper-middle.
-- Large arrow on the right or lower-right.
+- Center the title horizontally across the usable page width and place it in the upper third, slightly below the top border rather than tight against it.
+- Use a large, bold title size. For typical A4 landscape event titles, start around 42–48 pt and wrap to two or three centered lines when needed.
+- Place the SLAIF logo large in the lower-left area. As a starting point, make the logo roughly 35–40% of the page width, then adjust after rendering.
+- Place the directional arrow large in the lower-right area, balanced against the logo.
+- Treat the title as the main header, with the logo and arrow forming a balanced lower row.
+
+Avoid making the title a small block parked in the upper-right corner. That composition tends to look less intentional and can make the logo/title/arrow hierarchy feel uneven.
 
 However, adapt the exact placement so the final board is readable, balanced, and uncluttered.
+
+When iterating on landscape layouts:
+
+- First tune the title width and line breaks so the title is centered, readable from distance, and has comfortable side margins.
+- Then tune the logo and arrow positions so neither feels squeezed into a corner.
+- Inspect diagonal-arrow pages especially carefully, because diagonal arrows need more visual clearance than straight arrows.
+- Prefer moving elements and adjusting line wrapping before shrinking the logo, title, or arrow.
 
 ### Portrait orientation
 
