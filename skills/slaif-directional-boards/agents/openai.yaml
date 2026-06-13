@@ -1,0 +1,4 @@
+interface:
+  display_name: "SLAIF Directional Boards"
+  short_description: "Generate SLAIF directional-board PDFs."
+  default_prompt: "Generate SLAIF directional boards from the required title, orientation, format, and border parameters."

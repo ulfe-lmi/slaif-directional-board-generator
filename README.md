@@ -6,19 +6,77 @@
 
 # SLAIF Directional Board Generator
 
-This project defines a small workflow for producing printable directional
-boards for SLAIF events. The output is always a single eight-page PDF, with
-one page for each required arrow direction.
+This repository is operated through a coding agent. It is not intended as a
+manual end-user tool.
 
-The boards are intended for real event signage, so the design priorities are
-clarity, readability, and consistency. Each page uses the same board design:
-the SLAIF logo, the event title, and one large directional arrow. Only the
-arrow direction changes from page to page.
+The user provides the event parameters. The coding agent updates or runs the
+generator, creates the PDF, renders the PDF pages to images, visually inspects
+the result, fixes layout problems, regenerates as needed, and only then hands
+over the final PDF.
 
-## What It Produces
+## User Request Format
 
-For each event, the generator produces one print-ready PDF containing exactly
-eight A4 pages:
+Before generating anything, the coding agent must have all four values:
+
+```text
+Title: <event title>
+Orientation: landscape or portrait
+Format: A4 or A3 on A4
+Border: yes or no
+```
+
+Example:
+
+```text
+Title: Delavnica Orkestrirano agentno programiranje
+Orientation: landscape
+Format: A3 on A4
+Border: yes
+```
+
+If any value is missing, the agent asks only for the missing value. It must not
+guess.
+
+## Output Modes
+
+The final deliverable is always one PDF.
+
+### A4
+
+`Format: A4` creates 8 PDF pages. Each page is one complete A4 board.
+
+The requested orientation is the orientation of each PDF page:
+
+- `landscape`: A4 landscape pages
+- `portrait`: A4 portrait pages
+
+### A3 on A4
+
+`Format: A3 on A4` creates 16 PDF pages. Each final board is split across two
+A4 printer pages.
+
+The requested orientation is the orientation of the assembled board:
+
+- `landscape`: final large landscape board, split into two A4 portrait pages
+- `portrait`: final large portrait board, split into two A4 landscape pages
+
+The two pages in each pair must include duplicated overlap and printable
+trim/alignment marks. This is required because ordinary A4 printers do not
+print all the way to the paper edge. A plain two-page split loses content at
+the join.
+
+A robust default is:
+
+- 25 mm total duplicated overlap
+- trim/alignment marks 10 mm from the overlapping sheet edge
+- 15 mm usable overlap after trimming
+
+The assembled board is slightly smaller than exact ISO A3 in the tiled
+direction. That is intentional and preferable to missing seam content.
+
+## Required Board Set
+
+Generate exactly eight final boards, in this order:
 
 1. Up
 2. Right
@@ -29,78 +87,209 @@ eight A4 pages:
 7. Down-left
 8. Up-left
 
-The page orientation can be either landscape or portrait, depending on the
-event need. A thin rounded border can also be included when requested.
+The design must be identical across all final boards. Only the arrow direction
+changes.
 
-## Required Inputs
+For `A3 on A4`, the page pairs are:
 
-Before generating boards, the workflow needs three pieces of information:
-
-- Event title: the exact title printed on every board.
-- Orientation: `landscape` or `portrait`.
-- Border preference: whether to include a rounded border.
-
-The expected input format is:
-
-```text
-Title: <event title>
-Orientation: landscape or portrait
-Border: yes or no
-```
+- pages 1-2: Up
+- pages 3-4: Right
+- pages 5-6: Left
+- pages 7-8: Down
+- pages 9-10: Up-right
+- pages 11-12: Down-right
+- pages 13-14: Down-left
+- pages 15-16: Up-left
 
 ## Source Asset
 
-The SLAIF logo is expected to be present as `logo.svg` in the project root.
-The logo should be used directly from that SVG file so the official mark is
-preserved. The palette should also be extracted from the SVG and reused for
-the board colors, especially the green used for the title and arrow.
+The repository must contain:
 
-## Design Approach
+```text
+logo.svg
+```
 
-The design should be created once and reused across all eight pages. This
-keeps the signage set consistent and avoids each direction looking like a
-separate design.
+The agent must use this SVG directly. It must not redraw, reinterpret, replace,
+or convert the logo unless that is explicitly required for a technical fix.
 
-For landscape boards, the preferred composition is:
+The board colors should be extracted from the SVG palette:
 
-- A large centered event title in the upper third of the page.
-- The SLAIF logo placed large in the lower-left area.
-- A large directional arrow placed in the lower-right area.
-- Enough whitespace around the title, logo, arrow, border, and page edges.
+- green from the logo for the title
+- green from the logo for the arrow
+- gray from the logo for the optional rounded border
 
-For portrait boards, a top-to-bottom layout is usually more appropriate:
+## Visual Requirements
 
-- Logo near the top.
-- Title below the logo or near the middle.
-- Large arrow in the lower part of the page.
+Each final board must contain:
 
-The arrow should be one of the green colors from the SLAIF logo palette and
-should never be gray. The title should use a clean bold font and remain
-readable from a distance.
+- the SLAIF logo
+- the event title
+- one large directional arrow
 
-## Verification
+The sign must be readable from a distance. Prioritize clarity over decoration.
 
-After generating the PDF, all eight pages should be rendered to images and
-visually inspected before the result is delivered. The verification pass should
-confirm that:
+The logo must be clearly visible and not distorted.
 
-- The PDF has exactly eight pages.
-- Every page is nonblank.
-- The logo renders correctly and is not distorted.
-- The event title is present, readable, and not crowded.
-- The arrow is large, clear, and present in each required direction once.
-- All pages share the same design and differ only by arrow direction.
-- Nothing overlaps or sits too close to the page edges or optional border.
+The title must be large, bold, readable, and clear of the logo, arrow, border,
+and page edges.
 
-If any rendered page fails inspection, the layout should be adjusted and the
-PDF regenerated before delivery.
+The arrow should normally be the largest visual element. It must be green, not
+gray, and the direction must be unambiguous.
+
+If `Border: yes`, include a thin rounded gray border. The border must not crowd
+the content.
+
+## Agent Workflow
+
+The coding agent should follow this workflow for every generation request.
+
+### 1. Confirm Inputs
+
+Confirm the request includes:
+
+```text
+Title
+Orientation
+Format
+Border
+```
+
+Stop and ask for missing values before editing or generating anything.
+
+### 2. Inspect the Workspace
+
+Check that `logo.svg` exists.
+
+Read the current generator and instructions before editing:
+
+```bash
+rg --files
+sed -n '1,260p' generate_boards.py
+sed -n '1,260p' AGENTS.md
+```
+
+### 3. Generate the PDF
+
+The implementation may use the existing `generate_boards.py` or another
+appropriate script, but the output must follow the rules in this README and
+`AGENTS.md`.
+
+The generated PDF should go under:
+
+```text
+dist/
+```
+
+`dist/` is generated output and is normally not committed.
+
+`generate_boards.py` is the canonical generator script in this repository. The
+agent is expected to modify it when needed for the requested title, format,
+orientation, border, layout, overlap, trim marks, or output filename. The script
+is a working starting point, not an untouchable template.
+
+### 4. Verify Metadata
+
+Use `pdfinfo` or an equivalent tool.
+
+For `A4`, verify:
+
+```text
+Pages: 8
+Page size: A4 in the requested orientation
+```
+
+For `A3 on A4`, verify:
+
+```text
+Pages: 16
+Page size: A4 in the required tile orientation
+```
+
+### 5. Render Every Page
+
+Render the PDF pages to images, for example:
+
+```bash
+mkdir -p dist/rendered-check
+pdftoppm -png -r 120 path/to/output.pdf dist/rendered-check/page
+```
+
+The agent must inspect the rendered images before delivery.
+
+### 6. Reassemble Tiled Boards
+
+For `A3 on A4`, the agent must also reassemble each rendered page pair into
+the final board image using the configured trim/overlap values.
+
+Inspect the reassembled board images, not only the individual tiles.
+
+### 7. Visual Inspection Checklist
+
+Before handing over the PDF, verify:
+
+- the PDF is not blank
+- the PDF has the correct page count
+- the SVG logo appears correctly
+- the logo is visible and not distorted
+- the event title appears correctly
+- the title is readable from a distance
+- the arrow appears clearly
+- all eight required arrow directions are present exactly once
+- the design is consistent across all final boards
+- only the arrow direction changes
+- no logo, title, arrow, border, or page edge overlap occurs
+- content is not too close to page edges
+- the optional border does not crowd the content
+- colors come from the SVG logo palette
+- for `A3 on A4`, paired tiles reassemble into complete boards
+- for `A3 on A4`, seam overlap prevents missing content
+- for `A3 on A4`, trim/alignment marks are visible and usable
+
+If any rendered page or reassembled board fails inspection, adjust the layout,
+regenerate the PDF, render again, and repeat until the output is good enough
+to hand over.
+
+Do not describe a PDF as complete unless this verification has been performed.
+
+## Printing Guidance for Delivered A3-on-A4 PDFs
+
+When delivering an `A3 on A4` PDF, tell the user:
+
+```text
+Print at 100% / actual size. Do not use fit-to-page.
+Use odd pages as left sheets and even pages as right sheets.
+Trim the blank unprinted edge from the even/right page using the printed marks.
+Place the cut edge over the matching marks on the odd/left page.
+Glue or tape the overlap.
+```
+
+## Files
+
+Tracked source/instruction files:
+
+```text
+AGENTS.md
+README.md
+generate_boards.py
+logo.svg
+skills/slaif-directional-boards/SKILL.md
+skills/slaif-directional-boards/agents/openai.yaml
+```
+
+Generated local output:
+
+```text
+dist/
+```
+
+Local virtual environments and generated output should not be committed.
 
 ## Maintainer
 
 Janez Perš  
 Faculty of Electrical Engineering, University of Ljubljana  
 Laboratory for Machine Intelligence (LMI)  
-Email: janez.pers@fe.uni-lj.si  
+Email: janez.pers@fe.uni-lj.si
 
 - Profile: https://lmi.fe.uni-lj.si/en/janez-pers-2/
 - Laboratory: https://lmi.fe.uni-lj.si/en
@@ -112,6 +301,7 @@ janez.pers@fe.uni-lj.si
 
 ## Acknowledgement
 
-We acknowledge the support of the EC/EuroHPC JU and the Slovenian Ministry of HESI via the project SLAIF (grant number 101254461).
+We acknowledge the support of the EC/EuroHPC JU and the Slovenian Ministry of
+HESI via the project SLAIF (grant number 101254461).
 
 Project website: https://www.slaif.si
